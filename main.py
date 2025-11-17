@@ -3,6 +3,7 @@ import assets
 import texts
 
 pygame.init()
+
 #commands
 screen = pygame.display.set_mode((1280, 720))
 show = screen.blit
@@ -25,6 +26,8 @@ music = pygame.mixer.music
 sound = pygame.mixer.Sound
 # sound.play(путь до файла)
 # аналогично с загрузкой аудиофайла.
+font = pygame.font.Font("font.otf", 26)
+text_manager = texts.TextManager(screen, font)
 
 #images short name
 rika = 'rika.jpg'
@@ -45,9 +48,8 @@ is_can_show_game_menu = True
 current_reading = 0
 
 
-font = pygame.font.Font("font.otf", 26)
 
-text_manager = texts.TextManager(screen, font)
+
 
 def main_menu():
     #start game
@@ -67,17 +69,17 @@ def main_menu():
         pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(40, 360, 300, 60))
 
 def settings():
-    #CHAR DELAY MS +
+    #CHAR DELAY MS +-s
     if selectedButtonInSettings == 0:
         pygame.draw.rect(screen, (255, 165, 255), pygame.Rect(40, 160, 300, 60))
     else:
         pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(40, 160, 300, 60))
-    #CHAR DELAY MS -
+    #MUSIC VOLUME
     if selectedButtonInSettings == 1:
         pygame.draw.rect(screen, (255, 165, 255), pygame.Rect(40, 260, 300, 60))
     else:
         pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(40, 260, 300, 60))
-    #idk lol...
+    #SOUND VOLUME
     if selectedButtonInSettings == 2:
         pygame.draw.rect(screen, (255, 165, 255), pygame.Rect(40, 360, 300, 60))
     else:
@@ -94,7 +96,12 @@ def game():
             music.play(-1)
             music_started = True
 
-
+def draw_game_menu():
+    alpha_surface = pygame.Surface((1280, 720), pygame.SRCALPHA)
+    pygame.draw.rect(alpha_surface, (255, 255, 255, 128), alpha_surface.get_rect())
+    screen.blit(alpha_surface, (0, 0))
+    menu_text = font.render('МЕНЮ ИГРЫ', True, (0, 0, 0))
+    screen.blit(menu_text, (1280//2 - menu_text.get_width()//2, 100))
 
 while not done:
     for event in pygame.event.get():
@@ -138,6 +145,8 @@ while not done:
             if event.key == pygame.K_ESCAPE:
                 #Показываем меню в игре
                 if is_can_show_game_menu:
+
+
 
                     is_can_show_game_menu=False
                     text_window = False
@@ -184,7 +193,6 @@ while not done:
                         texts.char_delay_ms -= 10
                         print(f"Текущее значение: {texts.char_delay_ms} МС")
 
-
     screen.fill((0, 0, 0))
 
 
@@ -192,8 +200,8 @@ while not done:
         game()
         if text_window:
             text_manager.draw(current_reading)
-
-
+        if not is_can_show_game_menu and not in_menu and not in_settings:
+            draw_game_menu()
 
     elif in_settings:
         settings()
