@@ -27,6 +27,7 @@ sound = pygame.mixer.Sound
 # sound.play(путь до файла)
 # аналогично с загрузкой аудиофайла.
 font = pygame.font.Font("font.otf", 26)
+font_small = pygame.font.Font("font.otf", 17)
 text_manager = texts.TextManager(screen, font)
 
 #images short name
@@ -37,16 +38,17 @@ memory = 'assets/music/memory.mp3'
 
 #States
 done = False
+isGameDone = False
 in_game = False
 in_settings = False
 in_menu = True
 selectedButton = 0
 selectedButtonInSettings = 0
+selectedButtonInGameMenu = 0
 music_started = False
 text_window = True
 is_can_show_game_menu = True
 current_reading = 0
-
 
 
 
@@ -68,6 +70,13 @@ def main_menu():
     else:
         pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(40, 360, 300, 60))
 
+    start_text = font.render('НАЧАТЬ ИГРУ', True, (0, 0, 0))
+    show(start_text, (110, 180))
+    settings_text = font.render('НАСТРОЙКИ', True, (0, 0, 0))
+    show(settings_text, (115, 280))
+    quit_text = font.render('ВЫХОД', True, (0, 0, 0))
+    show(quit_text, (140, 380))
+
 def settings():
     #CHAR DELAY MS +-s
     if selectedButtonInSettings == 0:
@@ -84,10 +93,16 @@ def settings():
         pygame.draw.rect(screen, (255, 165, 255), pygame.Rect(40, 360, 300, 60))
     else:
         pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(40, 360, 300, 60))
-    return
+    character_delay_text = font_small.render(f"ЗАДЕРЖКА ВЫВОДА СИМВОЛОВ {texts.char_delay_ms}", True, (0, 0, 0))
+    show(character_delay_text, (55, 185))
+    settings_text = font.render('ГРОМКОСТЬ МУЗЫКИ', True, (0, 0, 0))
+    show(settings_text, (80, 280))
+    quit_text = font.render('ГРОМКОСТЬ ЗВУКА', True, (0, 0, 0))
+    show(quit_text, (80, 380))
 
 def game():
     global music_started
+
 
     if current_reading == 5:
         show(image(rika),(0, 0))
@@ -95,6 +110,15 @@ def game():
             music.load(memory)
             music.play(-1)
             music_started = True
+    if current_reading == 10:
+        game_quit()
+
+def game_quit():
+    global in_game
+    global in_menu
+    music.stop()
+    in_game = False
+    in_menu = True
 
 def draw_game_menu():
     alpha_surface = pygame.Surface((1280, 720), pygame.SRCALPHA)
@@ -102,6 +126,28 @@ def draw_game_menu():
     screen.blit(alpha_surface, (0, 0))
     menu_text = font.render('МЕНЮ ИГРЫ', True, (0, 0, 0))
     screen.blit(menu_text, (1280//2 - menu_text.get_width()//2, 100))
+
+    if selectedButtonInGameMenu == 0:
+        pygame.draw.rect(screen, (255, 165, 255), pygame.Rect(40, 160, 300, 60))
+    else:
+        pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(40, 160, 300, 60))
+    if selectedButtonInGameMenu == 1:
+        pygame.draw.rect(screen, (255, 165, 255), pygame.Rect(40, 260, 300, 60))
+    else:
+        pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(40, 260, 300, 60))
+    if selectedButtonInGameMenu == 2:
+        pygame.draw.rect(screen, (255, 165, 255), pygame.Rect(40, 360, 300, 60))
+    else:
+        pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(40, 360, 300, 60))
+    continue_text = font.render('ПРОДОЛЖИТЬ', True, (0, 0, 0))
+    show(continue_text, (110, 180))
+    settings_text = font.render('НАСТРОЙКИ', True, (0, 0, 0))
+    show(settings_text, (115, 280))
+    quit_text = font.render('ВЫХОД', True, (0, 0, 0))
+    show(quit_text, (140, 380))
+
+def quit_game(self):
+    self.isGameDone = True
 
 while not done:
     for event in pygame.event.get():
@@ -113,10 +159,8 @@ while not done:
             #Переключение между кнопками
             if event.key == pygame.K_DOWN:
                 selectedButton = (selectedButton + 1) % 3
-                print(selectedButton)
             if event.key == pygame.K_UP:
                 selectedButton = (selectedButton - 1) % 3
-                print(selectedButton)
             #Нажатие Enter
             if event.key == pygame.K_RETURN:
                 if selectedButton == 0:
@@ -145,17 +189,18 @@ while not done:
             if event.key == pygame.K_ESCAPE:
                 #Показываем меню в игре
                 if is_can_show_game_menu:
-
-
-
                     is_can_show_game_menu=False
                     text_window = False
-                    print(is_can_show_game_menu)
                 #Скрываем меню в игре
                 else:
                     is_can_show_game_menu = True
                     text_window = True
-                    print(is_can_show_game_menu)
+
+            if not is_can_show_game_menu:
+                if event.key == pygame.K_DOWN:
+                    selectedButtonInGameMenu = (selectedButtonInGameMenu + 1) % 3
+                if event.key == pygame.K_UP:
+                    selectedButtonInGameMenu = (selectedButtonInGameMenu - 1) % 3
 
 
         if event.type == pygame.MOUSEBUTTONDOWN and in_game and not in_settings:
@@ -176,45 +221,35 @@ while not done:
             #Переключение между кнопками
             if event.key == pygame.K_DOWN:
                 selectedButtonInSettings = (selectedButtonInSettings + 1) % 3
-                print(selectedButtonInSettings)
             if event.key == pygame.K_UP:
                 selectedButtonInSettings = (selectedButtonInSettings - 1) % 3
-                print(selectedButtonInSettings)
 
             if event.key == pygame.K_RIGHT:
                 if selectedButtonInSettings == 0:
                     if texts.char_delay_ms < 1000:
                         texts.char_delay_ms += 10
-                        print(f"Текущее значение: {texts.char_delay_ms} МС")
 
             if event.key == pygame.K_LEFT:
                 if selectedButtonInSettings == 0:
                     if texts.char_delay_ms > 9:
                         texts.char_delay_ms -= 10
-                        print(f"Текущее значение: {texts.char_delay_ms} МС")
 
     screen.fill((0, 0, 0))
-
-
-    if in_game:
-        game()
-        if text_window:
-            text_manager.draw(current_reading)
-        if not is_can_show_game_menu and not in_menu and not in_settings:
-            draw_game_menu()
-
-    elif in_settings:
-        settings()
-
-    elif in_menu:
-        main_menu()
+    if not isGameDone:
+        if in_game:
+            game()
+            if text_window:
+                text_manager.draw(current_reading)
+            if not is_can_show_game_menu and not in_menu and not in_settings:
+                draw_game_menu()
+        elif in_settings:
+            settings()
+        elif in_menu:
+            main_menu()
+        else:
+            main_menu()
     else:
-        main_menu()
-
-
-
-
-
+        done = True
     pygame.display.flip()
     pygame.time.Clock().tick(60)
 pygame.quit()
